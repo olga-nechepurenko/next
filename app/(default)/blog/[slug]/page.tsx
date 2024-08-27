@@ -1,43 +1,43 @@
-import type { BlogMedia, Blog } from "@/types/blog-types";
-import type { Metadata } from "next";
-import Image from "next/image";
-import { notFound } from "next/navigation";
+import type { BlogImageRest, BlogPostRest } from '@/types/blog-types';
+import type { Metadata } from 'next';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
 
 const WP_REST_BASE = process.env.WP_REST_BASE;
 
 type Props = {
-    params: {
-        slug: string;
-    };
+  params: {
+    slug: string;
+  };
 };
 
 export default async function SingleBlogPage({ params: { slug } }: Props) {
-    const { title, date, content, featured_media } = await getPostData(slug);
+  const { title, date, content, featured_media } = await getPostData(slug);
 
-    const imageData = await getImageData(featured_media);
+  const imageData = await getImageData(featured_media);
 
-    return (
-        <div>
-            <header>
-                <h1>{title.rendered}</h1>
-                <time dateTime={date.substring(0, 10)}>
-                    {new Date(date).toLocaleDateString("de")}
-                </time>
-            </header>
-            {/* Bild, falls Bilddaten vorhanden, mit der Image-Komponente darstellen */}
+  return (
+    <div>
+      <header>
+        <h1>{title.rendered}</h1>
+        <time dateTime={date.substring(0, 10)}>
+          {new Date(date).toLocaleDateString('de')}
+        </time>
+      </header>
+      {/* Bild, falls Bilddaten vorhanden, mit der Image-Komponente darstellen */}
 
-            {imageData && (
-                <Image
-                    className="full-width-image"
-                    src={imageData.guid.rendered}
-                    alt={imageData.alt_text}
-                    {...imageData.media_details}
-                />
-            )}
-            {/* Hier den content in einem div darstellen */}
-            <div dangerouslySetInnerHTML={{ __html: content.rendered }} />
-        </div>
-    );
+      {imageData && (
+        <Image
+          className="full-width-image"
+          src={imageData.guid.rendered}
+          alt={imageData.alt_text}
+          {...imageData.media_details}
+        />
+      )}
+      {/* Hier den content in einem div darstellen */}
+      <div dangerouslySetInnerHTML={{ __html: content.rendered }} />
+    </div>
+  );
 }
 
 /* Daten des zum Slug passenden Beitrags laden. Falls kein Beitrag gefunden
@@ -46,61 +46,68 @@ Beispiel-URL: https://react.webworker.berlin/wp-json/wp/v2/posts?slug=react-rock
 ACHTUNG: Antwort kommt als Array mit einem Objekt, nicht direkt als Objekt.
 */
 async function getPostData(slug: string) {
-    const response = await fetch(`${WP_REST_BASE}/posts?slug=${slug}`, {
-        next: {
-            revalidate: 600,
-        },
-    });
+  const response = await fetch(`${WP_REST_BASE}/posts?slug=${slug}`, {
+    next: {
+      revalidate: 600,
+    },
+  });
 
-    const posts = (await response.json()) as Blog[];
+  const posts = (await response.json()) as BlogPostRest[];
 
-    const post = posts[0];
+  const post = posts[0];
 
-    if (!post) {
-        notFound();
-    }
+  if (!post) {
+    notFound();
+  }
 
-    return post;
+  return post;
 }
 
 /* Bilddaten laden, falls der Beitrag ein Titelbild hat.
 Beispiel-URL: https://react.webworker.berlin/wp-json/wp/v2/media/5
 */
 async function getImageData(imageId: number) {
-    if (!imageId) {
-        return null;
-    }
+  if (!imageId) {
+    return null;
+  }
 
-    const response = await fetch(`${WP_REST_BASE}/media/${imageId}`, {
-        next: {
-            revalidate: 600,
-        },
-    });
+  const response = await fetch(`${WP_REST_BASE}/media/${imageId}`, {
+    next: {
+      revalidate: 600,
+    },
+  });
 
-    if (!response.ok) {
-        return null;
-    }
+  if (!response.ok) {
+    return null;
+  }
 
-    const imageData = (await response.json()) as BlogMedia;
+  const imageData = (await response.json()) as BlogImageRest;
 
-    return imageData;
+  return imageData;
 }
 
 /* Dynamisch den Titel in Metadaten einfügen */
 
 export async function generateMetadata({
-    params: { slug },
+  params: { slug },
 }: Props): Promise<Metadata> {
-    const { title } = await getPostData(slug);
+  const { title } = await getPostData(slug);
 
-    return {
-        title: title.rendered,
-    };
+  return {
+    title: title.rendered,
+  };
 }
 
+/* Mit dieser Funktion können alle Werte von slug, die aktuell bekannt sind,
+schon vorab an Next mitgeteilt werden, so dass die Seiten für diese Slugs
+schon beim build erzeugt werden können, und nicht dynamisch beim ersten Aufrufen
+des Slugs (mit Wartezeit) erzeugt werden müssen.
+https://nextjs.org/docs/app/api-reference/functions/generate-static-params
+*/
 export async function generateStaticParams() {
-    const response = await fetch(`${WP_REST_BASE}/posts`);
-    const posts = (await response.json()) as Blog[];
+  const response = await fetch(`${WP_REST_BASE}/posts`);
 
-    return posts.map((post) => post.slug);
+  const posts = (await response.json()) as BlogPostRest[];
+
+  return posts.map(({ slug }) => ({ slug }));
 }

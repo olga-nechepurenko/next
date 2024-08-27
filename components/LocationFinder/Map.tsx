@@ -1,35 +1,35 @@
-import type { CimdataLocation, LatLng } from "@/types/location-types";
-import { useEffect } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
+import type { CimdataLocation, LatLng } from '@/types/location-types';
+import { useEffect } from 'react';
+import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
 // @ts-expect-error
-import MarkerClusterGroup from "@changey/react-leaflet-markercluster";
+import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 type Props = {
-    zoom: number;
-    center: LatLng;
-    locations?: CimdataLocation[];
+  zoom: number;
+  center: LatLng;
+  locations?: CimdataLocation[];
 };
 export default function Map({ zoom, center, locations = [] }: Props) {
-    /* Achtung: Die zoom und center-Props von MapContainer werden nur für die
+  /* Achtung: Die zoom und center-Props von MapContainer werden nur für die
 	erste Darstellung der Karte verwendet, wenn sie sich später ändern, 
 	hat das keine Auswirkung auf die Karte! */
-    return (
-        <MapContainer zoom={zoom} center={center} scrollWheelZoom={false}>
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MarkerClusterGroup>
-                {locations.map(({ title, latLng }) => (
-                    <Marker key={title} position={latLng}>
-                        <Popup>
-                            <strong>{title}</strong>
-                        </Popup>
-                    </Marker>
-                ))}
-            </MarkerClusterGroup>
-            <MapController zoom={zoom} center={center} />
-        </MapContainer>
-    );
+  return (
+    <MapContainer zoom={zoom} center={center} scrollWheelZoom={false}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <MarkerClusterGroup>
+        {locations.map(({ title, latLng }) => (
+          <Marker key={title} position={latLng}>
+            <Popup>
+              <strong>{title}</strong>
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
+      <MapController zoom={zoom} center={center} />
+    </MapContainer>
+  );
 }
 
 /* 
@@ -39,13 +39,13 @@ die Methode setView auf map anwenden.
 (https://leafletjs.com/reference.html#map-methods-for-modifying-map-state)
 */
 
-type MapControllerProps = Pick<Props, "center" | "zoom">;
+type MapControllerProps = Pick<Props, 'center' | 'zoom'>;
 
 function MapController({ zoom, center }: MapControllerProps) {
-    /* map enthält die Leaflet-Instanz. */
-    const map = useMap();
+  /* map enthält die Leaflet-Instanz. */
+  const map = useMap();
 
-    /* Hier werden Methoden der Leaflet-Bibliothek verwendet, ganz unabhängig
+  /* Hier werden Methoden der Leaflet-Bibliothek verwendet, ganz unabhängig
         von React!
        https://leafletjs.com/reference.html#map-methods-for-modifying-map-state
         (Achtung: Da map.setView() das map-Objekt zurückgibt, müssen wir bei der Callback-
@@ -54,9 +54,9 @@ function MapController({ zoom, center }: MapControllerProps) {
         "Aufräum-Funktion" des Effekts halten und als Funktion aufrufen, was zum Absturz 
         des Programms führen würde.)
         */
-    useEffect(() => {
-        map.setView(center, zoom);
-    }, [zoom, center, map]);
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [zoom, center, map]);
 
-    return null;
+  return null;
 }

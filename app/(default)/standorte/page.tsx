@@ -1,15 +1,15 @@
-import LocationFinder from "@/components/LocationFinder/LocationFinder";
-import { Metadata } from "next";
+import LocationFinder from '@/components/LocationFinder/LocationFinder';
+import type { Metadata } from 'next';
 
-export const matadata: Metadata = {
-    title: "Standorte",
+export const metadata: Metadata = {
+  title: 'Standorte',
 };
 
 export default function StandortePage() {
-    return (
-        <>
-            <h1>StandortePage</h1>
-            <LocationFinder />
-        </>
-    );
+  return (
+    <>
+      <h1>Standorte</h1>
+      <LocationFinder />
+    </>
+  );
 }

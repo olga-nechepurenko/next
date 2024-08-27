@@ -1,15 +1,14 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
+import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 type Props = {
-    children: ReactNode;
+  children: ReactNode;
 };
-
-export default function DefaultBlogLayoutGql({ children }: Props) {
-    return (
-        <>
-            {children}
-            <Link href="/gql-blog">Zurück zum Blogs</Link>
-        </>
-    );
+export default function layout({ children }: Props) {
+  return (
+    <>
+      {children}
+      <Link href="/gql-blog">Zurück zum Blog</Link>
+    </>
+  );
 }
