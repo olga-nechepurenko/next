@@ -1,3 +1,13 @@
 {
-  "extends": "next/core-web-vitals"
+    "extends": [
+        "next/core-web-vitals",
+        "plugin:jsx-a11y/recommended",
+        "next/babel"
+    ],
+    "rules": {
+        "no-var": "error",
+        "prefer-const": "error",
+        "object-shorthand": "warn",
+        "react/no-unknown-property": ["error", { "ignore": ["xyz"] }]
+    }
 }
