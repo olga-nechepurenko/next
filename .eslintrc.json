@@ -1,9 +1,5 @@
 {
-    "extends": [
-        "next/core-web-vitals",
-        "plugin:jsx-a11y/recommended",
-        "next/babel"
-    ],
+    "extends": ["next/core-web-vitals", "plugin:jsx-a11y/recommended", "next"],
     "rules": {
         "no-var": "error",
         "prefer-const": "error",
