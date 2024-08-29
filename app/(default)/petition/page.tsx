@@ -73,11 +73,6 @@ export default async function PetitionPage({
 
     /* Die Ergebnisse sollen in anderer Reihenfolge aus der Datenbank kommen, älteste
 Unterschriften zuerst. */
-    const signatures = await prisma.signature.findMany({
-        where: {
-            approved: true,
-        },
-    });
 
     return (
         <>

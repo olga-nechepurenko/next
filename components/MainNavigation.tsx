@@ -52,6 +52,10 @@ const linkTargets = [
         text: "Petition",
         url: "/petition",
     },
+    {
+        text: "Veranstaltungen",
+        url: "/veranstaltungen",
+    },
 ] satisfies LinkTarget[];
 
 /* 

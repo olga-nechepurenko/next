@@ -2,9 +2,9 @@
 
 import prisma from "@/prisma/db";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { zfd } from "zod-form-data";
-
+import { z } from "zod";
+import { wait } from "@/lib/helpers";
 export async function serverTest(count: number) {
     console.log("Hallo auf dem Server!");
 
@@ -23,10 +23,12 @@ export async function approveSignature(id: string, approve: boolean) {
                 approved: true,
             },
         });
-        console.log("updated");
     } else {
-        await prisma.signature.delete({ where: { id } });
-        console.log("deleted");
+        await prisma.signature.delete({
+            where: {
+                id,
+            },
+        });
     }
 
     /*
@@ -37,6 +39,7 @@ export async function approveSignature(id: string, approve: boolean) {
 
 /* 1. Mit zfd ein Schema erstellen, dass zum Formular passt.
 https://www.npmjs.com/package/zod-form-data
+https://developer.mozilla.org/en-US/docs/Web/API/FormData
 	2. Mit der Schema-Methode safeParse formData parsen.
 	3. Die Daten in die Datenbank mit Hilfe von prisma eintragen
 	4. Bonus: Vor dem Eintragen mit einer weiteren Datenbankanfrage
@@ -45,23 +48,55 @@ https://www.npmjs.com/package/zod-form-data
 	noch nicht in der Datenbank vorhanden ist.
 	*/
 
-export async function addSignature(data: FormData) {
-    const formSchema = zfd.formData({
-        name: zfd.text(),
-        //email: zfd.email(),
+/* Wichtig: Wenn das Formular useFormState nutzt, wird formData zum
+zweiten Parameter, der erste ist der Startwert von useFormData */
+export async function addSignature(prevState: unknown, formData: FormData) {
+    console.log(formData.get("privacy"));
+
+    const schema = zfd.formData({
+        name: zfd.text(z.string().max(100).optional()),
+        email: zfd.text(z.string().email()),
+        //privacy: zfd.checkbox({ trueValue: 'accept' }),
         privacy: z.literal("accept"),
     });
-    const name = data.get("name") as string;
-    const email = data.get("email") as string;
-    const privacy = data.get("privacy") as string;
 
-    const dataObject = formSchema.parse(data);
+    const { success, data, error } = schema.safeParse(formData);
+
+    if (!success) {
+        console.log(error);
+        return {
+            message: "Bitte überprüfen Sie Ihre Eingabe!",
+            status: "data-error",
+        };
+    }
+
+    const emailExists = await prisma.signature.findUnique({
+        where: {
+            email: data.email,
+        },
+    });
+
+    const successMessage = {
+        message:
+            "Vielen Dank. Bitte prüfen Sie ihre Mailbox und bestätigen Sie die Mailadresse",
+        status: "success",
+    };
+
+    await wait(4000);
+
+    if (emailExists) {
+        // Aus Datenschutzgründen nicht verraten, dass Mailadresse schon existiert
+        return successMessage;
+    }
 
     await prisma.signature.create({
         data: {
-            name,
-            email,
-            approved: false,
+            name: data.name,
+            email: data.email,
         },
     });
+
+    revalidatePath("/petition");
+
+    return successMessage;
 }

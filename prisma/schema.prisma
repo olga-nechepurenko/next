@@ -10,6 +10,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
+  // previewFeatures = ["relationJoins"]
   url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
@@ -19,9 +20,41 @@ model Signature {
   // ID, wenn man eine automatisch hochgezählte Integer-Zahl möchte.
   // Achtung, Gefahr, dass jemand einfach IDs ausprobiert.
   //  id Int @id @default(autoincrement())
-  id   String @id @default(uuid()) // Kryptische Strings ohne Reihenfolge als ID
-  name String? 
-  email String @unique
-  approved Boolean @default(false)
-  date DateTime @default(now())
+  id       String   @id @default(uuid()) // Kryptische Strings ohne Reihenfolge als ID
+  name     String? // Optionale Spalte
+  email    String   @unique // Einzigartiger Wert, Adresse darf nicht zweimal vorkommen
+  approved Boolean  @default(false)
+  date     DateTime @default(now()) // Zeitpunk der Erstellung des Eintrags
+}
+
+model Event {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  date        DateTime
+  poster      Poster? // 1:1 Relation, muss hier (wo nicht @relation verwendet wird) optional sein
+  posterId    Int
+  //1:n Realtion, Event kann nur eine Venue haben
+  Venue       Venue      @relation(fields: [venueId], references: [id])
+  venueId     Int
+  category    Category[]
+}
+
+model Poster {
+  id      Int    @id @default(autoincrement())
+  url     String
+  event   Event  @relation(fields: [eventId], references: [id]) // Angabe dient nur Prisma
+  eventId Int    @unique // Feld tauch in der Datenbank auf
+}
+
+model Venue {
+  id     Int     @id @default(autoincrement())
+  name   String
+  events Event[] //1:n Relation, Venue kann viele Events haben
+}
+
+model Category {
+  id    Int     @id @default(autoincrement())
+  name  String
+  event Event[]
 }
